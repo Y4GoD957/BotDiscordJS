@@ -1,4 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
+const jimp = require("jimp");
 const config = require('./config.json');
 
 const client = new Client({
@@ -19,6 +20,37 @@ client.on("ready", async () => {
 
     console.log(`Bot foi iniciado, com ${totalUsers} usuários, em ${totalChannels} canais, em ${totalGuilds} servidores.`);
     client.user.setActivity(`Eu estou em ${totalGuilds} servidores`);
+});
+
+client.on("guildMemberAdd", async member => {
+    let canal = client.channels.cache.get("1277460591295860779"); // Certifique-se de que o ID do canal está correto
+    if (!canal) return console.error("Canal não encontrado");
+
+    try {
+        let fonte = await jimp.loadFont(jimp.FONT_SANS_32_BLACK);
+        let mask = await jimp.read('img/mascara.png');
+        let fundo = await jimp.read('img/fundo.png');
+
+        let avatarURL = member.user.displayAvatarURL({ extension: 'png', dynamic: true, size: 512 });
+        let avatar = await jimp.read(avatarURL);
+
+        avatar.resize(130, 130);
+        mask.resize(130, 130);
+        avatar.mask(mask);
+
+        fundo.print(fonte, 170, 175, member.user.username);
+        fundo.composite(avatar, 40, 90);
+
+        // Usar writeAsync para esperar a gravação do arquivo
+        await fundo.writeAsync('bemvindo.png');
+
+        // Enviar a imagem para o canal após ser completamente gravada
+        await canal.send({ files: ["bemvindo.png"] });
+
+        console.log('Imagem enviada para o Discord');
+    } catch (err) {
+        console.error('Erro ao processar a imagem:', err);
+    }
 });
 
 client.on("guildCreate", guild => {
