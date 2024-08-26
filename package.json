@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "bot.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,6 +16,7 @@
     "download-file": "^0.1.5",
     "gif-to-apng": "^0.1.2",
     "jimp": "^0.22.12",
+    "lowdb": "^2.1.0",
     "uuid": "^10.0.0"
   }
 }
