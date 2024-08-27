@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Events } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -65,6 +65,54 @@ for (const file of eventFiles) {
         console.error(`Erro ao carregar o evento ${file}:`, error);
     }
 }
+
+// Adiciona o listener para o evento 'raw'
+client.on(Events.Raw, async (data) => {
+    // Verifica se o evento é de adição ou remoção de reação
+    if (data.t !== 'MESSAGE_REACTION_ADD' && data.t !== 'MESSAGE_REACTION_REMOVE') return;
+
+    try {
+        // Verifica se a reação foi adicionada à mensagem específica
+        if (data.d.message_id !== '1277840600690851902') return;
+
+        // Obtém o servidor usando o ID fornecido
+        const servidor = client.guilds.cache.get('1277460588930535458');
+        if (!servidor) throw new Error('Servidor não encontrado');
+
+        // Obtém o membro usando o ID do usuário que reagiu
+        const membro = await servidor.members.fetch(data.d.user_id);
+        if (!membro) throw new Error('Membro não encontrado');
+
+        // Obtém os cargos usando seus IDs
+        const roles = {
+            '1277727793735667742': '1277842861001412700', // Gif Estragado
+            '⭐': '1277843063414198342', // Sonho
+            '🚂': '1277843132280733698', // Falsas Promessas
+            '💴': '1277843188236812320', // Dinheiro Fácil
+            '1277850481573629993': '1277843242796322940'  // Frio e Calculista
+        };
+
+        const roleId = roles[data.d.emoji.id || data.d.emoji.name];
+        if (!roleId) return console.error('Emoji não mapeado para um cargo');
+
+        const role = servidor.roles.cache.get(roleId);
+        if (!role) return console.error('Cargo não encontrado');
+
+        if (data.t === 'MESSAGE_REACTION_ADD') {
+            if (!membro.roles.cache.has(role.id)) {
+                await membro.roles.add(role);
+                console.log(`${role.name} adicionado a ${membro.user.tag}`);
+            }
+        } else if (data.t === 'MESSAGE_REACTION_REMOVE') {
+            if (membro.roles.cache.has(role.id)) {
+                await membro.roles.remove(role);
+                console.log(`${role.name} removido de ${membro.user.tag}`);
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao processar a reação:', error);
+    }
+});
 
 // Evento de login
 client.once('ready', () => {
