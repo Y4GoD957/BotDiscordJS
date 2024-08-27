@@ -34,6 +34,7 @@ const client = new Client({
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessageReactions
     ]
 });
 
@@ -45,6 +46,73 @@ client.on("ready", async () => {
 
     console.log(`Bot foi iniciado, com ${totalUsers} usuários, em ${totalChannels} canais, em ${totalGuilds} servidores.`);
     client.user.setActivity(`Eu estou em ${totalGuilds} servidores`);
+});
+
+client.on('raw', async (dados) => {
+    // Verifica se o evento é de adição ou remoção de reação
+    if (dados.t !== "MESSAGE_REACTION_ADD" && dados.t !== "MESSAGE_REACTION_REMOVE") return;
+
+    // Verifica se a reação foi adicionada à mensagem específica
+    if (dados.d.message_id !== "1277840600690851902") return;
+
+    // Obtém o servidor usando o ID fornecido
+    let servidor = client.guilds.cache.get("1277460588930535458");
+    if (!servidor) return console.error("Servidor não encontrado");
+
+    // Obtém o membro usando o ID do usuário que reagiu
+    let membro = await servidor.members.fetch(dados.d.user_id).catch(console.error);
+    if (!membro) return console.error("Membro não encontrado");
+
+    // Obtém os cargos usando seus IDs
+    let CargoGifEstragado = servidor.roles.cache.get('1277842861001412700'),
+        CargoSonho = servidor.roles.cache.get('1277843063414198342'),
+        CargoFrioECalculista = servidor.roles.cache.get('1277843242796322940'),
+        CargoFalsasPromessas = servidor.roles.cache.get('1277843132280733698'),
+        CargoDinheiroFacil = servidor.roles.cache.get('1277843188236812320');
+
+    if (!CargoGifEstragado || !CargoSonho || !CargoFrioECalculista || !CargoFalsasPromessas || !CargoDinheiroFacil) {
+        return console.error("Um ou mais cargos não foram encontrados");
+    }
+
+    // Verifica se a reação foi adicionada
+    if (dados.t === "MESSAGE_REACTION_ADD") {
+        if (dados.d.emoji.id === "1277727793735667742") {
+            if (membro.roles.cache.has(CargoGifEstragado.id)) return;
+            await membro.roles.add(CargoGifEstragado).catch(console.error);
+        } else if (dados.d.emoji.name === "⭐") {
+            if (membro.roles.cache.has(CargoSonho.id)) return;
+            await membro.roles.add(CargoSonho).catch(console.error);
+        } else if (dados.d.emoji.name === "🚂") {
+            if (membro.roles.cache.has(CargoFalsasPromessas.id)) return;
+            await membro.roles.add(CargoFalsasPromessas).catch(console.error);
+        } else if (dados.d.emoji.name === "💴") {
+            if (membro.roles.cache.has(CargoDinheiroFacil.id)) return;
+            await membro.roles.add(CargoDinheiroFacil).catch(console.error);
+        } else if (dados.d.emoji.id === "1277850481573629993") {
+            if (membro.roles.cache.has(CargoFrioECalculista.id)) return;
+            await membro.roles.add(CargoFrioECalculista).catch(console.error);
+        }
+    }
+
+    // Verifica se a reação foi removida
+    if (dados.t === "MESSAGE_REACTION_REMOVE") {
+        if (dados.d.emoji.id === "1277727793735667742") {
+            if (!membro.roles.cache.has(CargoGifEstragado.id)) return;
+            await membro.roles.remove(CargoGifEstragado).catch(console.error);
+        } else if (dados.d.emoji.name === "⭐") {
+            if (!membro.roles.cache.has(CargoSonho.id)) return;
+            await membro.roles.remove(CargoSonho).catch(console.error);
+        } else if (dados.d.emoji.name === "🚂") {
+            if (!membro.roles.cache.has(CargoFalsasPromessas.id)) return;
+            await membro.roles.remove(CargoFalsasPromessas).catch(console.error);
+        } else if (dados.d.emoji.name === "💴") {
+            if (!membro.roles.cache.has(CargoDinheiroFacil.id)) return;
+            await membro.roles.remove(CargoDinheiroFacil).catch(console.error);
+        } else if (dados.d.emoji.id === "1277850481573629993") {
+            if (!membro.roles.cache.has(CargoFrioECalculista.id)) return;
+            await membro.roles.remove(CargoFrioECalculista).catch(console.error);
+        }
+    }
 });
 
 client.on("guildMemberAdd", async member => {
